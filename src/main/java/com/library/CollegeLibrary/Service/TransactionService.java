@@ -12,6 +12,8 @@ import com.library.CollegeLibrary.Repository.BookRepository;
 import com.library.CollegeLibrary.Repository.LibraryCardRepository;
 import com.library.CollegeLibrary.Repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -24,6 +26,8 @@ public class TransactionService {
     LibraryCardRepository libraryCardRepository;
     @Autowired
     BookRepository bookRepository;
+    @Autowired
+    private JavaMailSender emailSender;
 
     public IssueBookResponseDTO issueBook(IssueBookRequestDTO issueBookRequestDTO) throws Exception {
         // Create transaction Object
@@ -81,6 +85,17 @@ public class TransactionService {
         issueBookResponseDTO.setBookName(book.getTitle());
         issueBookResponseDTO.setTransactionId(transaction.getTransactionNumber());
         issueBookResponseDTO.setTransactionStatus(TransactionStatus.SUCCESS);
+
+        // send mail
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("sjdemo.backend@gmail.com");
+        message.setTo(libraryCard.getStudent().getEmail());
+        message.setSubject("Book Issue Notification");
+        // create mail as text
+        String text="Dear " + libraryCard.getStudent().getName() + ",\n" + book.getTitle() +
+                " has been issued on your name. \nHappy reading!!";
+        message.setText(text);
+        emailSender.send(message);
 
         return issueBookResponseDTO;
     }
